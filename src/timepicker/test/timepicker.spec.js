@@ -1,3 +1,5 @@
+
+
 describe('timepicker directive', function () {
   var $rootScope, element;
 
@@ -37,7 +39,7 @@ describe('timepicker directive', function () {
   }
 
   function getArrow(isUp, tdIndex) {
-    return element.find('tr').eq( (isUp) ? 0 : 2 ).find('td').eq( tdIndex ).find('a').eq(0);
+    return element.children('div').eq( (isUp) ? 0 : 2 ).find('div').eq( tdIndex ).find('a').eq(0);
   }
 
   function getHoursButton(isUp) {
@@ -45,7 +47,7 @@ describe('timepicker directive', function () {
   }
 
   function getMinutesButton(isUp) {
-    return getArrow(isUp, 2);
+    return getArrow(isUp, 1);
   }
 
   function getMeridianButton() {
@@ -64,9 +66,14 @@ describe('timepicker directive', function () {
     e.wheelDelta = delta;
     return e;
   }
+  
+  function wheelThatOtherMouse(delta) {
+    var e = $.Event('wheel');
+    e.deltaY = delta;
+    return e;
+  }
 
-  it('contains three row & three input elements', function() {
-    expect(element.find('tr').length).toBe(3);
+  it('contains three input elements and one button', function() {
     expect(element.find('input').length).toBe(2);
     expect(element.find('button').length).toBe(1);
   });
@@ -304,6 +311,60 @@ describe('timepicker directive', function () {
     expect(getModelState()).toEqual([14, 40]);
   });
 
+  it('responds properly on "wheel" events', function() {
+    var inputs = element.find('input');
+    var hoursEl = inputs.eq(0), 
+        minutesEl = inputs.eq(1);
+
+    var upMouseWheelEvent = wheelThatOtherMouse(-1);
+    var downMouseWheelEvent = wheelThatOtherMouse(1);
+
+    expect(getTimeState()).toEqual(['02', '40', 'PM']);
+    expect(getModelState()).toEqual([14, 40]);
+
+    // UP
+    hoursEl.trigger( upMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['03', '40', 'PM']);
+    expect(getModelState()).toEqual([15, 40]);
+
+    hoursEl.trigger( upMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['04', '40', 'PM']);
+    expect(getModelState()).toEqual([16, 40]);
+
+    minutesEl.trigger( upMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['04', '41', 'PM']);
+    expect(getModelState()).toEqual([16, 41]);
+
+    minutesEl.trigger( upMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['04', '42', 'PM']);
+    expect(getModelState()).toEqual([16, 42]);
+
+    // DOWN
+    minutesEl.trigger( downMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['04', '41', 'PM']);
+    expect(getModelState()).toEqual([16, 41]);
+
+    minutesEl.trigger( downMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['04', '40', 'PM']);
+    expect(getModelState()).toEqual([16, 40]);
+
+    hoursEl.trigger( downMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['03', '40', 'PM']);
+    expect(getModelState()).toEqual([15, 40]);
+
+    hoursEl.trigger( downMouseWheelEvent );
+    $rootScope.$digest();
+    expect(getTimeState()).toEqual(['02', '40', 'PM']);
+    expect(getModelState()).toEqual([14, 40]);
+  });
+
   describe('attributes', function () {
     beforeEach(function() {
       $rootScope.hstep = 2;
@@ -413,6 +474,38 @@ describe('timepicker directive', function () {
       expect(getTimeState()).toEqual(['02', '00', 'PM']);
       expect(getModelState()).toEqual([14, 0]);
     });
+    
+    it('responds properly on "wheel" events with configurable steps', function() {
+      var inputs = element.find('input');
+      var hoursEl = inputs.eq(0), minutesEl = inputs.eq(1);
+      var upMouseWheelEvent = wheelThatOtherMouse(-1);
+      var downMouseWheelEvent = wheelThatOtherMouse(1);
+
+      expect(getTimeState()).toEqual(['02', '00', 'PM']);
+      expect(getModelState()).toEqual([14, 0]);
+
+      // UP
+      hoursEl.trigger( upMouseWheelEvent );
+      $rootScope.$digest();
+      expect(getTimeState()).toEqual(['04', '00', 'PM']);
+      expect(getModelState()).toEqual([16, 0]);
+
+      minutesEl.trigger( upMouseWheelEvent );
+      $rootScope.$digest();
+      expect(getTimeState()).toEqual(['04', '30', 'PM']);
+      expect(getModelState()).toEqual([16, 30]);
+
+      // DOWN
+      minutesEl.trigger( downMouseWheelEvent );
+      $rootScope.$digest();
+      expect(getTimeState()).toEqual(['04', '00', 'PM']);
+      expect(getModelState()).toEqual([16, 0]);
+
+      hoursEl.trigger( downMouseWheelEvent );
+      $rootScope.$digest();
+      expect(getTimeState()).toEqual(['02', '00', 'PM']);
+      expect(getModelState()).toEqual([14, 0]);
+    });
 
     it('can handle strings as steps', function() {
       var upHours = getHoursButton(true);
@@ -451,7 +544,7 @@ describe('timepicker directive', function () {
     it('initially displays correct time when `show-meridian` is false', function() {
       expect(getTimeState(true)).toEqual(['14', '10']);
       expect(getModelState()).toEqual([14, 10]);
-      expect(getMeridianTd().css('display')).toBe('none');
+      expect(getMeridianButton().css('display')).toBe('none');
     });
 
     it('toggles correctly between different modes', function() {
@@ -467,7 +560,7 @@ describe('timepicker directive', function () {
       $rootScope.$digest();
       expect(getTimeState(true)).toEqual(['14', '10']);
       expect(getModelState()).toEqual([14, 10]);
-      expect(getMeridianTd().css('display')).toBe('none');
+      expect(getMeridianButton().css('display')).toBe('none');
     });
   });
 
@@ -600,14 +693,14 @@ describe('timepicker directive', function () {
 
       changeInputValueTo(el, 'pizza');
       expect($rootScope.time).toBe(null);
-      expect(el.parent().hasClass('error')).toBe(true);
+      expect(el.parent().hasClass('has-error')).toBe(true);
 
       changeInputValueTo(el, 8);
       el.blur();
       $rootScope.$digest();
       expect(getTimeState()).toEqual(['08', '40', 'PM']);
       expect(getModelState()).toEqual([20, 40]);
-      expect(el.parent().hasClass('error')).toBe(false);
+      expect(el.parent().hasClass('has-error')).toBe(false);
     });
 
     it('clears model when input minutes is invalid & alerts the UI', function() {
@@ -615,12 +708,12 @@ describe('timepicker directive', function () {
 
       changeInputValueTo(el, 'pizza');
       expect($rootScope.time).toBe(null);
-      expect(el.parent().hasClass('error')).toBe(true);
+      expect(el.parent().hasClass('has-error')).toBe(true);
 
       changeInputValueTo(el, 22);
       expect(getTimeState()).toEqual(['02', '22', 'PM']);
       expect(getModelState()).toEqual([14, 22]);
-      expect(el.parent().hasClass('error')).toBe(false);
+      expect(el.parent().hasClass('has-error')).toBe(false);
     });
 
     it('handles 12/24H mode change', function() {
@@ -632,7 +725,7 @@ describe('timepicker directive', function () {
 
       changeInputValueTo(el, '16');
       expect($rootScope.time).toBe(null);
-      expect(el.parent().hasClass('error')).toBe(true);
+      expect(el.parent().hasClass('has-error')).toBe(true);
 
       $rootScope.meridian = false;
       $rootScope.$digest();
@@ -642,4 +735,5 @@ describe('timepicker directive', function () {
   });
 
 });
+
 

@@ -12,7 +12,7 @@ describe('pager directive with default configuration', function () {
   }));
 
   it('has a "pager" css class', function() {
-    expect(element.hasClass('pager')).toBe(true);
+    expect(element.find('ul').eq(0).hasClass('pager')).toBe(true);
   });
 
   it('contains 2 li elements', function() {
@@ -100,6 +100,18 @@ describe('pager directive with default configuration', function () {
     expect(element.find('li').length).toBe(2);
     expect($rootScope.currentPage).toBe(2);
     expect($rootScope.selectPageHandler).toHaveBeenCalledWith(2);
+  });
+
+  describe('when `current-page` is not a number', function () {
+    it('handles string', function() {
+      $rootScope.currentPage = '1';
+      $rootScope.$digest();
+      expect(element.find('li').eq(0).hasClass('disabled')).toBe(true);
+
+      $rootScope.currentPage = '05';
+      $rootScope.$digest();
+      expect(element.find('li').eq(-1).hasClass('disabled')).toBe(true);
+    });
   });
 });
 

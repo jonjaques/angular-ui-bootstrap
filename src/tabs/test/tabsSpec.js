@@ -1,5 +1,5 @@
 describe('tabs', function() {
-  beforeEach(module('ui.bootstrap.tabs', 'template/tabs/tabset.html', 'template/tabs/tab.html'));
+  beforeEach(module('ui.bootstrap.tabs', 'template/tabs/tabset.html', 'template/tabs/tab.html', 'template/tabs/tabset-titles.html'));
 
   var elm, scope;
   function titles() {
@@ -24,7 +24,7 @@ describe('tabs', function() {
     }
   }
 
-  
+
   describe('basics', function() {
 
     beforeEach(inject(function($compile, $rootScope) {
@@ -33,14 +33,16 @@ describe('tabs', function() {
       scope.second = '2';
       scope.actives = {};
       scope.selectFirst = jasmine.createSpy();
-      scope.selectSecond = jasmine.createSpy(); 
+      scope.selectSecond = jasmine.createSpy();
+      scope.deselectFirst = jasmine.createSpy();
+      scope.deselectSecond = jasmine.createSpy();
       elm = $compile([
         '<div>',
         '  <tabset class="hello" data-pizza="pepperoni">',
-        '    <tab heading="First Tab {{first}}" active="actives.one" select="selectFirst()">',
+        '    <tab heading="First Tab {{first}}" active="actives.one" select="selectFirst()" deselect="deselectFirst()">',
         '      first content is {{first}}',
         '    </tab>',
-        '    <tab active="actives.two" select="selectSecond()">',
+        '    <tab active="actives.two" select="selectSecond()" deselect="deselectSecond()">',
         '      <tab-heading><b>Second</b> Tab {{second}}</tab-heading>',
         '      second content is {{second}}',
         '    </tab>',
@@ -90,6 +92,14 @@ describe('tabs', function() {
       expect(scope.selectFirst).toHaveBeenCalled();
     });
 
+    it('should call deselect callback on deselect', function() {
+      titles().eq(1).find('a').click();
+      titles().eq(0).find('a').click();
+      expect(scope.deselectSecond).toHaveBeenCalled();
+      titles().eq(1).find('a').click();
+      expect(scope.deselectFirst).toHaveBeenCalled();
+    });
+
   });
 
   describe('ng-repeat', function() {
@@ -97,14 +107,14 @@ describe('tabs', function() {
     beforeEach(inject(function($compile, $rootScope) {
       scope = $rootScope.$new();
 
-      function makeTab() {
+      function makeTab(active) {
         return {
-          active: false,
+          active: !!active,
           select: jasmine.createSpy()
         };
       }
       scope.tabs = [
-        makeTab(), makeTab(), makeTab(), makeTab()
+        makeTab(), makeTab(), makeTab(true), makeTab()
       ];
       elm = $compile([
         '<tabset>',
@@ -130,7 +140,7 @@ describe('tabs', function() {
         if (activeTab === tab) {
           expect(tab.active).toBe(true);
           //It should only call select ONCE for each select
-          expect(tab.select.callCount).toBe(1);
+          expect(tab.select).toHaveBeenCalled();
           expect(_titles.eq(i)).toHaveClass('active');
           expect(contents().eq(i).text().trim()).toBe('content ' + i);
           expect(contents().eq(i)).toHaveClass('active');
@@ -141,9 +151,9 @@ describe('tabs', function() {
       });
     }
 
-    it('should make tab titles with first content and first active', function() {
+    it('should make tab titles and set active tab active', function() {
       expect(titles().length).toBe(scope.tabs.length);
-      expectTabActive(scope.tabs[0]);
+      expectTabActive(scope.tabs[2]);
     });
 
     it('should switch active when clicking', function() {
@@ -208,7 +218,7 @@ describe('tabs', function() {
       expect(heading().eq(2).text()).toBe('2');
       expect(heading().eq(3).text()).toBe('3');
     });
-    
+
   });
 
   //Tests that http://git.io/lG6I9Q is fixed
@@ -481,6 +491,56 @@ describe('tabs', function() {
       expect(elm.find('ul')).toHaveClass('nav-pills');
       expect(elm.find('ul')).not.toHaveClass('nav-tabs');
     });
+  });
+
+  describe('direction', function() {
+    it('should not have `tab-left`, `tab-right` nor `tabs-below` classes if the direction is undefined', inject(function($compile, $rootScope) {
+      scope = $rootScope.$new();
+      scope.direction = undefined;
+
+      elm = $compile('<tabset direction="direction"></tabset>')(scope);
+      scope.$apply();
+      expect(elm).not.toHaveClass('tabs-left');
+      expect(elm).not.toHaveClass('tabs-right');
+      expect(elm).not.toHaveClass('tabs-below');
+      expect(elm.find('.nav + .tab-content').length).toBe(1);
+    }));
+
+    it('should only have the `tab-left` direction class if the direction is "left"', inject(function($compile, $rootScope) {
+      scope = $rootScope.$new();
+      scope.direction = 'left';
+
+      elm = $compile('<tabset direction="direction"></tabset>')(scope);
+      scope.$apply();
+      expect(elm).toHaveClass('tabs-left');
+      expect(elm).not.toHaveClass('tabs-right');
+      expect(elm).not.toHaveClass('tabs-below');
+      expect(elm.find('.nav + .tab-content').length).toBe(1);
+    }));
+
+    it('should only have the `tab-right direction class if the direction is "right"', inject(function($compile, $rootScope) {
+      scope = $rootScope.$new();
+      scope.direction = 'right';
+
+      elm = $compile('<tabset direction="direction"></tabset>')(scope);
+      scope.$apply();
+      expect(elm).not.toHaveClass('tabs-left');
+      expect(elm).toHaveClass('tabs-right');
+      expect(elm).not.toHaveClass('tabs-below');
+      expect(elm.find('.nav + .tab-content').length).toBe(1);
+    }));
+
+    it('should only have the `tab-below direction class if the direction is "below"', inject(function($compile, $rootScope) {
+      scope = $rootScope.$new();
+      scope.direction = 'below';
+
+      elm = $compile('<tabset direction="direction"></tabset>')(scope);
+      scope.$apply();
+      expect(elm).not.toHaveClass('tabs-left');
+      expect(elm).not.toHaveClass('tabs-right');
+      expect(elm).toHaveClass('tabs-below');
+      expect(elm.find('.tab-content + .nav').length).toBe(1);
+    }));
   });
 
   //https://github.com/angular-ui/bootstrap/issues/524

@@ -102,6 +102,16 @@ describe('typeahead tests', function () {
       expect(inputEl.val()).toEqual('Alaska');
     });
 
+    it('should default to bound model for initial rendering if there is not enough info to render label', function () {
+
+      $scope.result = $scope.states[0].code;
+
+      var element = prepareInputEl("<div><input ng-model='result' typeahead='state.code as state.name + state.code for state in states'></div>");
+      var inputEl = findInput(element);
+
+      expect(inputEl.val()).toEqual('AL');
+    });
+
     it('should not get open on model change', function () {
       var element = prepareInputEl("<div><input ng-model='result' typeahead='item for item in source'></div>");
       $scope.$apply(function () {
@@ -222,14 +232,14 @@ describe('typeahead tests', function () {
 
     it('should support custom templates for matched items', inject(function ($templateCache) {
 
-      $templateCache.put('custom.html', '<p>{{ match.label }}</p>');
+      $templateCache.put('custom.html', '<p>{{ index }} {{ match.label }}</p>');
 
       var element = prepareInputEl("<div><input ng-model='result' typeahead-template-url='custom.html' typeahead='state as state.name for state in states | filter:$viewValue'></div>");
       var inputEl = findInput(element);
 
       changeInputValueTo(element, 'Al');
 
-      expect(findMatches(element).eq(0).find('p').text()).toEqual('Alaska');
+      expect(findMatches(element).eq(0).find('p').text()).toEqual('0 Alaska');
     }));
   });
 

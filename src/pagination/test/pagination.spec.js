@@ -12,7 +12,7 @@ describe('pagination directive with default configuration', function () {
   }));
 
   it('has a "pagination" css class', function() {
-    expect(element.hasClass('pagination')).toBe(true);
+    expect(element.find('ul').eq(0).hasClass('pagination')).toBe(true);
   });
 
   it('contains one ul and num-pages + 2 li elements', function() {
@@ -114,6 +114,18 @@ describe('pagination directive with default configuration', function () {
     expect(element.find('li').length).toBe(4);
     expect($rootScope.currentPage).toBe(2);
     expect($rootScope.selectPageHandler).toHaveBeenCalledWith(2);
+  });
+
+  describe('when `current-page` is not a number', function () {
+    it('handles string', function() {
+      $rootScope.currentPage = '2';
+      $rootScope.$digest();
+      expect(element.find('li').eq(2).hasClass('active')).toBe(true);
+
+      $rootScope.currentPage = '04';
+      $rootScope.$digest();
+      expect(element.find('li').eq(4).hasClass('active')).toBe(true);
+    });
   });
 });
 
@@ -404,7 +416,7 @@ describe('pagination directive with just number links', function () {
   }));
 
   it('has a "pagination" css class', function() {
-    expect(element.hasClass('pagination')).toBe(true);
+    expect(element.find('ul').eq(0).hasClass('pagination')).toBe(true);
   });
 
   it('contains one ul and num-pages li elements', function() {
