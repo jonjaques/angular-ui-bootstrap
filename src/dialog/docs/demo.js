@@ -4,13 +4,15 @@ function DialogDemoCtrl($scope, $dialog){
   var t = '<div class="modal-dialog">'+
           '<div class="modal-content">'+
           '<div class="modal-header">'+
-          '<h3>This is the title</h3>'+
+          '<h4 class="modal-title">This is the title</h4>'+
           '</div>'+
           '<div class="modal-body">'+
-          '<p>Enter a value to pass to <code>close</code> as the result: <input ng-model="result" /></p>'+
+          '<p>Enter a value to pass to <code>close</code> '+
+          'as the result: <input type="text" ng-model="result" /></p>'+
           '</div>'+
           '<div class="modal-footer">'+
-          '<button ng-click="close(result)" class="btn btn-primary" >Close</button>'+
+          '<button ng-click="close(result)" class="btn btn-primary" >'+
+          'Close</button>'+
           '</div></div></div>';
 
   $scope.opts = {
@@ -34,7 +36,10 @@ function DialogDemoCtrl($scope, $dialog){
   $scope.openMessageBox = function(){
     var title = 'This is a message box';
     var msg = 'This is the content of the message box';
-    var btns = [{result:'cancel', label: 'Cancel'}, {result:'ok', label: 'OK', cssClass: 'btn-primary'}];
+    var btns = [
+      {result:'cancel', label: 'Cancel'},
+      {result:'ok', label: 'OK', cssClass: 'btn-primary'}
+    ];
 
     $dialog.messageBox(title, msg, btns)
       .open()
