@@ -28,7 +28,7 @@ describe('collapse directive', function () {
     expect(element.height()).toBe(0);
   });
 
-  it('should collapse if isCollapsed = true with animation on subsequent use', function() {
+  it('should collapsed if isCollapsed = true with animation on subsequent use', function() {
     scope.isCollapsed = false;
     scope.$digest();
     scope.isCollapsed = true;

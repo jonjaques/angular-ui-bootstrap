@@ -1,7 +1,12 @@
 <div ng-controller="CollapseDemoCtrl">
 	<button class="btn btn-default" ng-click="isCollapsed = !isCollapsed">Toggle collapse</button>
+	<p class="pull-right">Collapsed Status: {{isCollapsed}}</p>
 	<hr>
 	<div collapse="isCollapsed">
-		<div class="well well-large">Some content</div> 
+		<div class="well well-large">
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sed
+			blandit mi. Suspendisse in accumsan tortor. Donec volutpat, massa a adipiscing
+			sollicitudin, leo nunc faucibus quam, sed vehicula elit mauris quis mauris.</p>
+		</div>
 	</div>
 </div>
